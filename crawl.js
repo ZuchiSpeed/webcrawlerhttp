@@ -1,6 +1,21 @@
 const { JSDOM } = require('jsdom')
 
-async function crawlPage(currentURL) {
+async function crawlPage(baseURL, currentURL, pages) {
+
+    const baseURLObj = new URL(baseURL)
+    const currentRLObj = new URL(currentURL)
+    if(baseURLObj.hostname !== currentRLObj.hostname) {
+        return pages
+    }
+
+    const normalizedCurrentURL = normalizeURL(currentURL)
+    if(pages[normalizedCurrentURL] > 0) {
+        pages[normalizedCurrentURL]++
+        return pages
+    }
+
+    pages[normalizedCurrentURL] = 1
+    
     console.log(`actively crawling: ${currentURL}`)
 
     try {
@@ -10,15 +25,22 @@ async function crawlPage(currentURL) {
         }
 
         const contentType = resp.headers.get("content-type")
-        if(contentType.includes("text/html")) {
+        if(!contentType.includes("text/html")) {
             console.log(`non html response type: ${contentType}, on page: ${currentURL}`)
-            return
+            return pages
         }
 
-        console.log(await resp.text())
+        const htmlBody = await resp.text()
+        const nextURLs = getURLsFromHTML(htmlBody, baseURL)
+
+        for(const nextURL of nextURLs) {
+            pages = await crawlPage(baseURL, nextURL, pages)
+        }
+
     } catch (err) {
         console.log(`error in fatch ${err.message} can't fatch ${currentURL}`)
     }
+    return pages
 }
 
 //html body and links pushed to dom with JSON (absolute or relative URL)
