@@ -1,10 +1,10 @@
 {
   "name": "webcrawlerhttp",
   "version": "1.0.0",
-  "description": "project on learning http and networking",
+  "description": "project on learning http and networking with webcrawling",
   "main": "main.js",
   "scripts": {
-    "start": "node main.js",
+    "start": "node --no-warnings main.js",
     "test": "jest"
   },
   "author": "",
